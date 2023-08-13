@@ -1,64 +1,55 @@
-import { ItemLoadingEventData } from "@nativescript-dom/core-types";
-import { Home } from "./routes/home";
-import { Route, StackRouter } from "./router";
-import { CollectionView } from "@nativescript-community/ui-collectionview";
+import { Canvas } from '@nativescript/canvas'
+import '@nativescript/canvas-three'
 //@ts-ignore
-import { makeListView, registerElement } from "dominative";
-import { Settings } from "./routes/settings";
-registerElement(
-  "collectionview",
-  makeListView(CollectionView, { force: true })
-);
+import { registerElement } from 'dominative'
+import * as THREE from 'three'
 
-declare global {
-  interface HTMLCollectionViewElement extends HTMLListViewElement {}
-
-  var HTMLCollectionViewElement: {
-    prototype: HTMLCollectionViewElement;
-    new (): HTMLCollectionViewElement;
-  };
-}
-
-declare module "solid-js" {
-  export namespace JSX {
-    interface IntrinsicElements {
-      /**
-       * Register custom library view
-       */
-      collectionview: Partial<
-        HTMLListViewElementAttributes<HTMLCollectionViewElement>
-      >;
-      /**
-       * Register dominative elements
-       */
-      itemtemplate: Partial<
-        HTMLViewBaseElementAttributes & {
-          "on:createView": (event: ItemLoadingEventData) => void;
-          "on:itemLoading": (event: ItemLoadingEventData) => void;
-          key: string;
-        }
-      >;
-      arrayprop: Partial<
-        HTMLViewBaseElementAttributes & {
-          key: string;
-        }
-      >;
-      keyprop: Partial<
-        HTMLViewBaseElementAttributes & {
-          key: string;
-        }
-      >;
-    }
-  }
-}
+registerElement('canvas', Canvas)
 
 const App = () => {
-  return (
-    <StackRouter initialRouteName="Home">
-      <Route name="Home" component={Home as any} />
-      <Route name="Settings" component={Settings as any} />
-    </StackRouter>
-  );
-};
+  let canvas: HTMLCanvasElement
 
-export { App };
+  const init = () => {
+    let camera: THREE.Camera, scene: THREE.Scene, renderer: THREE.Renderer
+    let geometry: THREE.BufferGeometry,
+      material: THREE.Material,
+      mesh: THREE.Mesh
+
+    init()
+    animate()
+
+    function init() {
+      const context = canvas.getContext('webgl')!
+
+      const { drawingBufferWidth: width, drawingBufferHeight: height } = context
+      camera = new THREE.PerspectiveCamera(70, width / height, 0.01, 10)
+      camera.position.z = 1
+
+      scene = new THREE.Scene()
+
+      geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
+      material = new THREE.MeshNormalMaterial()
+
+      mesh = new THREE.Mesh(geometry, material)
+      scene.add(mesh)
+
+      renderer = new THREE.WebGLRenderer({ context })
+      renderer.setSize(width, height)
+
+      console.log('renderer is ', renderer)
+    }
+
+    function animate() {
+      mesh.rotation.x += 0.01
+      mesh.rotation.y += 0.02
+
+      console.log('renderer.render', renderer.render)
+
+      //renderer.render(scene, camera)
+    }
+  }
+
+  return <canvas ref={canvas!} style={{ background: 'grey' }} on:ready={init} />
+}
+
+export { App }
